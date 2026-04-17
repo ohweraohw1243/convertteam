@@ -8,25 +8,21 @@ import requests
 METRIKA_API_URL = "https://api-metrika.yandex.net/stat/v1/data"
 
 DEMO_DATA = {
-    "Проект А": {"sessions": 980,  "bounceRate": 42.1, "goal_vacancies": 5, "goal_tilda": 3, "goal_phone": 12},
-    "Проект Б": {"sessions": 650,  "bounceRate": 38.5, "goal_vacancies": 2, "goal_tilda": 7, "goal_phone": 8},
-    "Проект В": {"sessions": 1720, "bounceRate": 35.8, "goal_vacancies": 14, "goal_tilda": 9, "goal_phone": 31},
+    "Проект А": {"sessions": 980,  "bounceRate": 42.1},
+    "Проект Б": {"sessions": 650,  "bounceRate": 38.5},
+    "Проект В": {"sessions": 1720, "bounceRate": 35.8},
 }
 
 
-def get_stats(token: str, counter_id: str, date_from: str, date_to: str, goals: dict) -> dict:
+def get_stats(token: str, counter_id: str, date_from: str, date_to: str, goal_id: str = None) -> dict:
     """
-    Запрашивает сессии, отказы и КОНКРЕТНЫЕ ЦЕЛИ из Метрики по их ID
+    Запрашивает сессии, отказы и конкретную цель из Метрики по её ID
     """
     headers = {"Authorization": f"OAuth {token}"}
-    
-    # Формируем строку метрик для запроса к API Метрики
-    # 'ym:s:goal<ID>reaches' - это количество достижений конкретной цели
     metrics_list = ["ym:s:visits", "ym:s:bounceRate"]
     
-    if goals.get("vacancies"): metrics_list.append(f"ym:s:goal{goals['vacancies']}reaches")
-    if goals.get("tilda"):     metrics_list.append(f"ym:s:goal{goals['tilda']}reaches")
-    if goals.get("phone"):     metrics_list.append(f"ym:s:goal{goals['phone']}reaches")
+    if goal_id:
+        metrics_list.append(f"ym:s:goal{goal_id}reaches")
 
     params = {
         "id":      counter_id,
@@ -48,22 +44,14 @@ def get_stats(token: str, counter_id: str, date_from: str, date_to: str, goals: 
         "bounceRate": round(float(totals[1]), 1) if len(totals) > 1 else 0.0,
     }
     
-    # Парсим цели обратно. totals массив идёт в том же порядке, что и metrics_list
-    offset = 2
-    if goals.get("vacancies"): 
-        result["goal_vacancies"] = int(totals[offset])
-        offset += 1
-    if goals.get("tilda"):
-        result["goal_tilda"] = int(totals[offset])
-        offset += 1
-    if goals.get("phone"):
-        result["goal_phone"] = int(totals[offset])
+    if goal_id:
+        result["goal_conversions"] = int(totals[2]) if len(totals) > 2 else 0
         
     return result
 
 
 def get_stats_demo(project_name: str) -> dict:
-    """Возвращает демо-данные по нужным целям для презентации."""
+    """Возвращает демо-данные."""
     return DEMO_DATA.get(project_name, {
-        "sessions": 500, "bounceRate": 45.0, "goal_vacancies": 3, "goal_tilda": 2, "goal_phone": 5
+        "sessions": 500, "bounceRate": 45.0
     })

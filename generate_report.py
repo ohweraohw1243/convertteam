@@ -47,13 +47,13 @@ def collect_data() -> list[dict]:
                 date_from=config.DATE_FROM,
                 date_to=config.DATE_TO,
             )
-            # В боевом режиме запрашиваем конкретные цели через их ID из Метрики
+            # В боевом режиме запрашиваем базовые данные (сессии и отказы)
             m = metrika.get_stats(
                 token=config.METRIKA_TOKEN,
                 counter_id=config.METRIKA_COUNTER_ID,
                 date_from=config.DATE_FROM,
                 date_to=config.DATE_TO,
-                goals=config.METRIKA_GOALS
+                goal_id=config.METRIKA_GOAL_ID
             )
 
         rows.append({
@@ -64,9 +64,6 @@ def collect_data() -> list[dict]:
             "conversions": d["conversions"],
             "sessions":    m["sessions"],
             "bounce_rate": m["bounceRate"],
-            "goal_vacancies": m.get("goal_vacancies", 0),
-            "goal_tilda":     m.get("goal_tilda", 0),
-            "goal_phone":     m.get("goal_phone", 0),
         })
         print("OK")
 
@@ -104,9 +101,9 @@ def export_to_google_sheets(rows: list[dict]):
             "Кол-во кликов", 
             "CPC", 
             "CTR (количество показов к кликам)", 
-            "Заявки по Вакансиям (тильда+клик по номеру телефона)", 
-            "Все формы Тильда", 
-            "Клик по номеру телефона"
+            "Кол-во конверсий", 
+            "Стоимость конверсии (CPA)",
+            "Конверсия сайта % (CR)"
         ]
         ws.append_row(headers)
 
@@ -124,8 +121,13 @@ def export_to_google_sheets(rows: list[dict]):
 
         ctr = round((clk / imp * 100) if imp > 0 else 0, 2)
         cpc = round((cost / clk) if clk > 0 else 0, 2)
+        # Рассчитываем CPA и CR (если конверсии берем из Директа: row["conversions"])
+        conv = row["conversions"]
+        sess = row["sessions"]
+        cpa = round((cost / conv) if conv > 0 else 0, 2)
+        cr = round((conv / sess * 100) if sess > 0 else 0, 2)
 
-        # Новая структура (конкретные цели из вашей Метрики)
+        # Новая структура: 1 колонка конверсии
         data_to_append.append([
             export_dt,                   # Дата
             f"р.{cost}".replace('.', ','), # Расход, в руб,
@@ -133,9 +135,9 @@ def export_to_google_sheets(rows: list[dict]):
             clk,                         # Кол-во кликов
             f"р.{cpc}".replace('.', ','),  # CPC
             f"{ctr}%".replace('.', ','),   # CTR (количество показов к кликам)
-            row.get("goal_vacancies", 0),  # Заявки по Вакансиям (тильда+клик по номеру телефона)
-            row.get("goal_tilda", 0),      # Все формы Тильда
-            row.get("goal_phone", 0)       # Клик по номеру телефона
+            conv,                        # Кол-во конверсий
+            f"р.{cpa}".replace('.', ','),  # Стоимость конверсии (CPA)
+            f"{cr}%".replace('.', ',')     # Конверсия сайта % (CR)
         ])
 
     # Пакетная выгрузка
