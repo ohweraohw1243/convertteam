@@ -1,43 +1,30 @@
 import os
 from datetime import date, timedelta
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-# ============================================================
-#  КОНФИГ — токены берутся из переменных окружения для безопасности
-# ============================================================
-
-# OAuth-токен Яндекс.Директа
+# Токены и доступы
 DIRECT_TOKEN = os.getenv("DIRECT_TOKEN", "")
-
-# Логин агентского аккаунта Яндекс.Директа (если агентство)
 DIRECT_CLIENT_LOGIN = os.getenv("DIRECT_CLIENT_LOGIN", "")
-
-# OAuth-токен Яндекс.Метрики
 METRIKA_TOKEN = os.getenv("METRIKA_TOKEN", "")
-
-# ID счётчика Яндекс.Метрики
 METRIKA_COUNTER_ID = os.getenv("METRIKA_COUNTER_ID", "")
 
-# ============================================================
-#  Период отчёта — по умолчанию: вчера
-# ============================================================
+# Период отчёта (по умолчанию за вчерашний день)
 DATE_FROM = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 DATE_TO   = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-# ============================================================
-#  Список проектов/юнитов внутри кабинета
-#  Формат: { "Название в отчёте": "campaign_id или None для всех" }
-# ============================================================
+# Проекты для выгрузки (Название: campaign_id или None для всех)
 PROJECTS = {
     "Проект А": None,
     "Проект Б": None,
     "Проект В": None,
 }
 
-# Путь для сохранения Excel-отчёта
 OUTPUT_PATH = "отчёт_реклама.xlsx"
 
-# ============================================================
-#  Настройки Google Sheets
-# ============================================================
+# Настройки Google Sheets
 GOOGLE_CREDENTIALS_FILE = "credentials.json"
 GOOGLE_SHEET_URL = os.getenv("GOOGLE_SHEET_URL", "")
