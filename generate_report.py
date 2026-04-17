@@ -106,12 +106,24 @@ def export_to_google_sheets(rows: list[dict]):
         cpa = round((cost / conv) if conv > 0 else 0, 2)
         cr = round((conv / sess * 100) if sess > 0 else 0, 2)
 
+        # Выгружаем в формате старой таблицы клиента: 
+        # ['Дата', 'Расход', 'Показы', 'Клики', 'CPC', 'CTR', 'Голос1', 'Голос2', 'Голос3', 'Конверсии', 'CPA', 'CR', 'Примечание/Проект']
         data_to_append.append([
-            export_dt, 
-            row["project"], 
-            imp, clk, ctr, cost, cpc, conv, cpa, sess, bnc, cr
+            export_dt,                   # Дата
+            f"р.{cost}".replace('.', ','), # Расход (как в их примере)
+            imp,                         # Показы
+            clk,                         # Клики
+            f"р.{cpc}".replace('.', ','),  # CPC
+            f"{ctr}%".replace('.', ','),   # CTR
+            "",                          # месенджер
+            "",                          # Цель заказ
+            "",                          # Автоцель
+            conv,                        # Кол-во конверсий (лид)
+            f"р.{cpa}".replace('.', ',') if cpa > 0 else "", # Стоимость конверсии
+            f"{cr}%".replace('.', ','),    # Конверсия сайта, %
+            f"Автовыгрузка: {row['project']}" # Примечание
         ])
-    
+
     # Пакетная выгрузка
     ws.append_rows(data_to_append, value_input_option='USER_ENTERED')
     print(f"✅ Успешно выгружено {len(data_to_append)} строк в таблицу: {sh.title}")
