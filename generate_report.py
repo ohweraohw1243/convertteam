@@ -47,11 +47,13 @@ def collect_data() -> list[dict]:
                 date_from=config.DATE_FROM,
                 date_to=config.DATE_TO,
             )
+            # В боевом режиме запрашиваем конкретные цели через их ID из Метрики
             m = metrika.get_stats(
                 token=config.METRIKA_TOKEN,
                 counter_id=config.METRIKA_COUNTER_ID,
                 date_from=config.DATE_FROM,
                 date_to=config.DATE_TO,
+                goals=config.METRIKA_GOALS
             )
 
         rows.append({
@@ -62,6 +64,9 @@ def collect_data() -> list[dict]:
             "conversions": d["conversions"],
             "sessions":    m["sessions"],
             "bounce_rate": m["bounceRate"],
+            "goal_vacancies": m.get("goal_vacancies", 0),
+            "goal_tilda":     m.get("goal_tilda", 0),
+            "goal_phone":     m.get("goal_phone", 0),
         })
         print("OK")
 
@@ -101,24 +106,18 @@ def export_to_google_sheets(rows: list[dict]):
 
         ctr = round((clk / imp * 100) if imp > 0 else 0, 2)
         cpc = round((cost / clk) if clk > 0 else 0, 2)
-        cpa = round((cost / conv) if conv > 0 else 0, 2)
-        cr = round((conv / sess * 100) if sess > 0 else 0, 2)
 
-        # Выгружаем в формате старой таблицы клиента
+        # Новая структура (конкретные цели из вашей Метрики)
         data_to_append.append([
             export_dt,                   # Дата
-            f"р.{cost}".replace('.', ','), # Расход
-            imp,                         # Показы
-            clk,                         # Клики
+            f"р.{cost}".replace('.', ','), # Расход, в руб,
+            imp,                         # Количество показов
+            clk,                         # Кол-во кликов
             f"р.{cpc}".replace('.', ','),  # CPC
-            f"{ctr}%".replace('.', ','),   # CTR
-            "",                          # Мессенджер
-            "",                          # Цель заказ
-            "",                          # Автоцель
-            conv,                        # Кол-во конверсий (лид)
-            f"р.{cpa}".replace('.', ',') if cpa > 0 else "", # Стоимость конверсии
-            f"{cr}%".replace('.', ','),    # Конверсия сайта, %
-            ""                           # Примечание
+            f"{ctr}%".replace('.', ','),   # CTR (количество показов к кликам)
+            row.get("goal_vacancies", 0),  # Заявки по Вакансиям (тильда+клик по номеру телефона)
+            row.get("goal_tilda", 0),      # Все формы Тильда
+            row.get("goal_phone", 0)       # Клик по номеру телефона
         ])
 
     # Пакетная выгрузка

@@ -12,6 +12,13 @@ DIRECT_CLIENT_LOGIN = os.getenv("DIRECT_CLIENT_LOGIN", "")
 METRIKA_TOKEN = os.getenv("METRIKA_TOKEN", "")
 METRIKA_COUNTER_ID = os.getenv("METRIKA_COUNTER_ID", "")
 
+# ID конкретных целей Яндекс.Метрики для колонок 7, 8 и 9
+METRIKA_GOALS = {
+    "vacancies": os.getenv("GOAL_VACANCIES", ""), # Заявки по Вакансиям (тильда+клик по номеру телефона)
+    "tilda":     os.getenv("GOAL_TILDA", ""),     # Все формы Тильда
+    "phone":     os.getenv("GOAL_PHONE", ""),     # Клик по номеру телефона
+}
+
 # Период отчёта (по умолчанию за вчерашний день)
 DATE_FROM = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 DATE_TO   = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
