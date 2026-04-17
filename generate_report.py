@@ -94,7 +94,8 @@ def export_to_google_sheets(rows: list[dict]):
     
     # Проверяем, есть ли уже заголовки в таблице. Если таблица пустая - добавляем их.
     existing_data = ws.get_all_values()
-    if not existing_data:
+    # gspread может вернуть [[]] для пустой таблицы
+    if not existing_data or not any(existing_data[0]):
         print("Таблица пустая, добавляем заголовки...")
         headers = [
             "Дата", 
